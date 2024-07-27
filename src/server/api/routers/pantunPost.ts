@@ -53,7 +53,16 @@ export const pantunRouter = createTRPCRouter({
         .where(eq(pantunPosts.id, input.id));
     }),
   delete: publicProcedure.input(z.number()).mutation(async ({ input }) => {
+    const pantunExist = await db
+      .select()
+      .from(pantunPosts)
+      .where(eq(pantunPosts.id, input));
+
+    if (pantunExist.length === 0) {
+      return { success: false, text: `Pantun with id ${input} does not exist` };
+    }
+
     await db.delete(pantunPosts).where(eq(pantunPosts.id, input));
-    return { success: true };
+    return { success: true, text: `Pantun with id ${input} has been deleted` };
   }),
 });
