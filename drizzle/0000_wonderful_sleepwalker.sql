@@ -13,6 +13,16 @@ CREATE TABLE IF NOT EXISTS "t3-template-app_account" (
 	CONSTRAINT "t3-template-app_account_provider_providerAccountId_pk" PRIMARY KEY("provider","providerAccountId")
 );
 --> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "t3-template-app_pantunPost" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"sampiran_1" text NOT NULL,
+	"sampiran_2" text,
+	"content_1" text NOT NULL,
+	"content_2" text,
+	"created_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"updatedAt" timestamp with time zone
+);
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "t3-template-app_post" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" varchar(256),
@@ -61,6 +71,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "account_userId_idx" ON "t3-template-app_account" ("userId");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "pantunPost_idIdx" ON "t3-template-app_pantunPost" ("id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "createdById_idx" ON "t3-template-app_post" ("createdById");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "name_idx" ON "t3-template-app_post" ("name");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "session_userId_idx" ON "t3-template-app_session" ("userId");
