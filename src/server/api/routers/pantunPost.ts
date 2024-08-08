@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { db } from "~/server/db";
-
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { pantunPosts } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 
 // Define your router
 export const pantunRouter = createTRPCRouter({
@@ -11,7 +11,19 @@ export const pantunRouter = createTRPCRouter({
     return await db.select().from(pantunPosts);
   }),
   getById: publicProcedure.input(z.number()).query(async ({ input }) => {
-    return await db.select().from(pantunPosts).where(eq(pantunPosts.id, input));
+    const result = await db
+      .select()
+      .from(pantunPosts)
+      .where(eq(pantunPosts.id, input));
+
+    if (result.length === 0) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `Pantun with ID ${input} not found`,
+      });
+    }
+
+    return result;
   }),
   create: publicProcedure
     .input(
@@ -37,7 +49,7 @@ export const pantunRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input }) => {
-      await db
+      const result = await db
         .update(pantunPosts)
         .set({
           sampiran_1: input.sampiran_1,
@@ -47,6 +59,14 @@ export const pantunRouter = createTRPCRouter({
           updatedAt: new Date(),
         })
         .where(eq(pantunPosts.id, input.id));
+
+      if (result.length === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Pantun with ID ${input} not found`,
+        });
+      }
+
       return await db
         .select()
         .from(pantunPosts)
