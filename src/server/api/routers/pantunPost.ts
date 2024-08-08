@@ -2,7 +2,7 @@ import { z } from "zod";
 import { db } from "~/server/db";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { pantunPosts } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, or, like } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 // Define your router
@@ -25,6 +25,59 @@ export const pantunRouter = createTRPCRouter({
 
     return result;
   }),
+  getSampiranByEnding: publicProcedure
+    .input(
+      z.object({
+        jumlahSampiran: z.enum(["1", "2"]),
+        ending: z.string(),
+      }),
+    )
+    .query(async ({ input }) => {
+      if (input.jumlahSampiran === "1") {
+        const result = await db
+          .select()
+          .from(pantunPosts)
+          .where(
+            or(
+              like(pantunPosts.sampiran_1, `%${input.ending}`),
+              like(pantunPosts.sampiran_2, `%${input.ending}`),
+            ),
+          );
+
+        if (result.length === 0) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: `Pantun with ending ${input.ending} not found`,
+          });
+        }
+
+        return result;
+      } else if (input.jumlahSampiran === "2") {
+        const result = await db
+          .select()
+          .from(pantunPosts)
+          .where(
+            and(
+              like(pantunPosts.sampiran_1, `%${input.ending}`),
+              like(pantunPosts.sampiran_2, `%${input.ending}`),
+            ),
+          );
+
+        if (result.length === 0) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: `Pantun with ending ${input.ending} not found`,
+          });
+        }
+
+        return result;
+      } else {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `jumlahSampiran isn't 1 or 2`,
+        });
+      }
+    }),
   create: publicProcedure
     .input(
       z.object({
